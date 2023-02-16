@@ -6,8 +6,12 @@ class OpenAIAPI:
         self.api_key = openai_api_key
         openai.api_key = openai_api_key
 
-    def send_message(self, message, stream=False):
-        prompt = f"User: {message}\nAI:"
+    def send_message(self, message, message_history=[]):     
+        
+
+        prompt = message
+        
+
         response = openai.Completion.create(
             engine="text-davinci-003",
             prompt=prompt,
@@ -15,8 +19,7 @@ class OpenAIAPI:
             n=1,
             stop=None,
             temperature=0.9,
-            stream = stream
+            timeout=1200,
         )
         return response.choices[0].text
         
-
