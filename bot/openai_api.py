@@ -10,7 +10,7 @@ class OpenAIAPI:
         
 
         prompt = message
-        
+
 
         response = openai.Completion.create(
             engine="text-davinci-003",
@@ -18,7 +18,7 @@ class OpenAIAPI:
             max_tokens=2048,
             n=1,
             stop=None,
-            temperature=0.9,
+            temperature=0.5,
             timeout=1200,
         )
         return response.choices[0].text

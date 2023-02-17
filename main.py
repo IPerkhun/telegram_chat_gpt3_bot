@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from bot.bot import MyChatBot
 import os
 from config import Config
+from bot.telegram_api import TelegramAPI
 
 # Загрузка переменных окружения из файла .env
 load_dotenv()
@@ -19,3 +20,4 @@ if __name__ == '__main__':
     
     # Запуск чат-бота
     my_chat_bot.run()
+
