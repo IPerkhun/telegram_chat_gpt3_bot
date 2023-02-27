@@ -1,11 +1,12 @@
-"""Make some requests to OpenAI's chatbot"""
 import time
 import os
+import re
 
 import telegram
+from telegram.error import BadRequest, RetryAfter
+
 from playwright.sync_api import sync_playwright
 
-from playwright_stealth import stealth_sync
 
 import logging
 
@@ -31,11 +32,11 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
         f"{TG_VER} version of this example, "
         f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
     )
-from telegram import ForceReply, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import ForceReply, Update
 
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-from telegram.helpers import escape, escape_markdown
+from telegram.helpers import escape_markdown
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -49,8 +50,9 @@ TELEGRAM_API_KEY = os.getenv('TELEGRAM_API_KEY')
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger("myapp")
+logger.setLevel(logging.INFO)
+# log = logging.getLogger("myapp")
 
 PLAY = sync_playwright().start()
 # Chrome doesnt seem to work in headless, so we use firefox
@@ -84,28 +86,32 @@ def send_message(message):
     box.fill(message)
     box.press("Enter")
 
-
 class AtrributeError:
     pass
-
 
 def get_last_message():
     """Get the latest message"""
     page_elements = PAGE.query_selector_all("div[class*='prose']")
 
-    last_element = page_elements[-1]
-    prose = last_element
+    if len(page_elements) == 0:
+        response = "No response from OpenAI"
+        return response
+    
+    # get the last element
+    prose = page_elements[-1]
+
     try:
         code_blocks = prose.query_selector_all("pre")
     except Exception as e:
-        response = 'Server probably disconnected, try running /reload'
+        response = 'Server probably disconnected, try running /reload and then /start again'
         return response
+    
 
     if len(code_blocks) > 0:
         # get all children of prose and add them one by one to respons
         response = ""
         for child in prose.query_selector_all('p,pre'):
-            print(child.get_property('tagName'))
+            logger.info(child.get_property('tagName'))
             if str(child.get_property('tagName')) == "PRE":
                 code_container = child.query_selector("code")
                 response += f"\n```\n{escape_markdown(code_container.inner_text(), version=2)}\n```"
@@ -113,8 +119,7 @@ def get_last_message():
                 #replace all <code>x</code> things with `x`
                 text = child.inner_html()
                 response += escape_markdown(text, version=2)
-        response = response.replace("<code\>", "`")
-        response = response.replace("</code\>", "`")
+                response = response.replace("<code\>", "`").replace("</code\>", "`")
     else:
         response = escape_markdown(prose.inner_text(), version=2)
     return response
@@ -153,14 +158,27 @@ async def reload(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Reloaded the browser!")
     await update.message.reply_text("Let's check if it's workin!")
 
-@auth(USER_ID)
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
-    # Send the message to OpenAI
-    send_message(update.message.text)
-    await check_loading(update)
-    response = get_last_message()
-    await update.message.reply_text(response, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2)
+    try:
+        # Send the message to OpenAI
+        send_message(update.message.text)
+        await check_loading(update)
+        response = get_last_message()
+        await update.message.reply_text(response, parse_mode=telegram.constants.ParseMode.MARKDOWN_V2)
+    except BadRequest as e:
+        # Handle Telegram errors due to invalid message formatting or entities
+        await update.message.reply_text(f"Error: {e.message}")
+    except RetryAfter as e:
+        # Handle Telegram rate limit errors by waiting and retrying
+        time.sleep(e.retry_after)
+        await echo(update, context)
+    except Exception as e:
+        # Handle other exceptions by logging the error and notifying the user
+        logger.error(f"Unexpected error: {str(e)}")
+        await update.message.reply_text(
+            f"Sorry, an unexpected error occurred. Please try again later. Try running /reload and then /start again {e}"
+            )
 
 async def check_loading(update):
     #button has an svg of submit, if it's not there, it's likely that the three dots are showing an animation
@@ -179,6 +197,7 @@ async def check_loading(update):
 
 
 def start_browser():
+
     PAGE.goto("https://chat.openai.com/")
     if not is_logged_in():
         print("Please log in to OpenAI Chat")
@@ -204,6 +223,12 @@ def start_browser():
             next_button.click()
         except:
             pass
+    # Clear old conversations
+    try:
+        PAGE.locator('a:has-text("Clear conversations")').click()
+        PAGE.locator('a:has-text("Confirm clear conversations")').click()
+    except:
+        pass
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
