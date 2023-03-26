@@ -61,4 +61,4 @@ jobs:
           host: ${{ secrets.AWS_SERVER_HOST_PROD }}
           username: ${{ secrets.AWS_SERVER_USER_PROD }}
           key: ${{ secrets.AWS_SSH_SERVER_KEY }}
-          script: sudo docker stop ${{ env.ENV_TYPE }} || sudo docker rm ${{ env.ENV_TYPE }} || sudo docker run -d -p 81:80 -v /opt/gptgram/${{ env.CONFIG }}:/app/config.ini -e PYTHONUNBUFFERED=1 --name ${{ env.ENV_TYPE }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          script: sudo docker stop ${{ env.ENV_TYPE }} && sudo docker rm ${{ env.ENV_TYPE }} && sudo docker run -d -p 81:80 -v /opt/gptgram/${{ env.CONFIG }}:/app/config.ini -e PYTHONUNBUFFERED=1 --name ${{ env.ENV_TYPE }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
