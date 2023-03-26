@@ -1,4 +1,4 @@
-name: GPTGram-CI/CD
+name: GPTGram-Production-CI/CD
 
 on: 
   push:
