@@ -1,0 +1,63 @@
+name: GPTGram-CI/CD
+
+on: 
+  push:
+    branches: 
+      - master
+    paths:
+      - '/**'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning' 
+        type: choice
+        options:
+        - info
+        - warning
+        - debug  
+
+env:
+  AWS_REGION: eu-north-1
+  ECR_REPOSITORY: gptgram
+  DOCKERFILE_PATH: Dockerfile
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    environment: development
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ECR_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+      
+      # - name: Executing remote ssh commands using password
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.KUBECTL_HOST }}
+      #     username: ${{ secrets.KUBECTL_USERNAME }}
+      #     AWS_SSH_SERVER_KEY: ${{ secrets.KUBECTL_PASSWORD }}
+      #     script: sudo docker stop $(sudo docker ps -aq) && sudo docker run -d -p 80:80 -v /opt/gptgram/config.ini:/app/config.ini -v /opt/gptgram/:/app -e PYTHONUNBUFFERED=1 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
