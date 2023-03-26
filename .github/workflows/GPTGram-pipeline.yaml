@@ -57,7 +57,7 @@ jobs:
       - name: Executing remote ssh commands using password
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.host }}
-          username: ${{ secrets.username }}
-          password: ${{ secrets.AWS_SERVER_PASSWORD }}
+          host: ${{ secrets.AWS_SERVER_HOST_PROD }}
+          username: ${{ secrets.AWS_SERVER_USER_PROD }}
+          key: ${{ secrets.AWS_SSH_SERVER_KEY }}
           script: sudo docker stop $(sudo docker ps -aq) && sudo docker run -d -p 80:80 -v /opt/gptgram/config.ini:/app/config.ini -v /opt/gptgram:/app -e PYTHONUNBUFFERED=1 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
