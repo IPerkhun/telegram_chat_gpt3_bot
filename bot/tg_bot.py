@@ -18,7 +18,7 @@ class MyChatBot:
         self.openai_manager = OpenAIManager(openai_api_key)
 
         # Define message history as an instance variable
-        self.message_history = [{"role": "system", "content": "You are a friendly and helpful teaching assistant. You explain concepts in great depth using simple terms, and you give examples to help people learn. At the end of each explanation, you ask a question to check for understanding"}]
+        self.message_history = [{"role": "system", "content": "Вы - доброжелательный и отзывчивый помощник преподавателя. Вы глубоко объясняете понятия, используя простые термины, и приводите примеры, чтобы помочь людям учиться. В конце каждого объяснения вы задаете вопрос, чтобы проверить понимание."}]
 
         # Register message handlers
         self.dp.register_message_handler(self.send_welcome, commands=['start'])
@@ -29,37 +29,36 @@ class MyChatBot:
 
     async def setup_bot_commands(self, dispatcher: Dispatcher):
         commands = [
-            types.BotCommand(command="/start", description="Start the bot"),
-            types.BotCommand(command="/help", description="Get help"),
-            types.BotCommand(command="/new", description="Start a new conversation"),
+            types.BotCommand(command="/start", description="Запустить бота"),
+            types.BotCommand(command="/help", description="Получить справку"),
+            types.BotCommand(command="/new", description="Начните новый разговор"),
         ]
         await dispatcher.bot.set_my_commands(commands)
 
     async def send_welcome(self, message: types.Message):
-        await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
+        await message.reply("Привет! Я бот, с которым можно общаться. Я использую GPT-3 от OpenAI для генерации ответов. Напишите /help, чтобы узнать больше.")
     
     async def new_conversation(self, message: types.Message):
-        self.message_history = [{"role": "system", "content": "You are a friendly and helpful teaching assistant. You explain concepts in great depth using simple terms, and you give examples to help people learn. At the end of each explanation, you ask a question to check for understanding"}]
-        await message.reply("Let's start a new conversation.")
+        self.message_history = [{"role": "system", "content": "Вы - доброжелательный и отзывчивый помощник преподавателя. Вы глубоко объясняете понятия, используя простые термины, и приводите примеры, чтобы помочь людям учиться. В конце каждого объяснения вы задаете вопрос, чтобы проверить понимание."}]
+        await message.reply("Давайте начнем новый разговор.")
 
     async def send_help(self, message: types.Message):
         """Send a message when the command /help is issued."""
         text = (
-            "Hi! I'm a bot that can talk to you. I use OpenAI's GPT-3 to generate responses. "
-            "Here are some things you can ask me to do:\n\n"
-            "📅 Plan your day\n"
-            "🍝 Find a recipe\n"
-            "💸 Allocate a budget\n"
-            "📝 Write a poem or a story\n"
-            "🎶 Generate song lyrics\n"
-            "🎨 Create art prompts\n"
-            "📚 Find book recommendations\n"
-            "🗺️ Generate travel itineraries\n"
-            "🎬 Come up with movie ideas\n"
-            "🎲 Generate random ideas\n\n"
-            "Use /stop to stop the conversation.\n"
-            "Use /new to start a new conversation.\n"
-            "Use /help to see this message again. "
+            "Привет! Я бот, с которым можно общаться. Я использую GPT-3 от OpenAI для генерации ответов. "
+            "Вот некоторые вещи, которые вы можете попросить меня сделать:\n\n"
+            "📅 Запланировать свой день\n"
+            "🍝 Найти рецепт\n"
+            "💸 Разделить бюджет\n"
+            "📝 Написать стихи или историю\n"
+            "🎶 Сгенерировать тексты песен\n"
+            "🎨 Создать задания для художников\n"
+            "📚 Найти рекомендации книг\n"
+            "🗺️ Сгенерировать план путешествия\n"
+            "🎬 Придумать идею для фильма\n"
+            "🎲 Сгенерировать случайные идеи\n\n"
+            "Используйте /new, чтобы начать новую беседу.\n"
+            "Используйте /help, чтобы увидеть это сообщение снова. "
         )
         await message.reply(text)
 
@@ -67,14 +66,14 @@ class MyChatBot:
         try:
             user_input = message.text
             if len(user_input) > 2048:
-                await message.answer("Message is too long.")
+                await message.answer("Сообщение слишком длинное.")
                 raise ValueError("Message is too long.")
             self.message_history.append({"role": "user", "content": user_input})
 
             num_tokens = sum(len(msg["content"].split()) for msg in self.message_history)
             if num_tokens > 3500:
                 self.message_history = self.clean_messages()
-                await message.answer(f"Message is too long. {self.message_history}")
+                await message.answer("Сообщение слишком длинное.")
                 raise ValueError("Message is too long.")
             await self.bot.send_chat_action(message.chat.id, 'typing')
 
@@ -94,7 +93,7 @@ class MyChatBot:
 
         except (TelegramAPIError, ValueError) as e:
             logging.error(f"Error processing message: {str(e)}")
-            error_message = "Sorry, there was an error processing your request. Please try again later."
+            error_message = "Извините, что-то пошло не так. Попробуйте снова. Если ошибка повторится, пожалуйста, сообщите об этом."
             self.message_history = self.clean_messages()
             await message.answer(error_message)
 
@@ -103,7 +102,7 @@ class MyChatBot:
             self.message_history = self.clean_messages()
 
     def clean_messages(self):
-        first_message = "You are a friendly and helpful teaching assistant. You explain concepts in great depth using simple terms, and you give examples to help people learn. At the end of each explanation, you ask a question to check for understanding"
+        first_message = "Вы - доброжелательный и отзывчивый помощник преподавателя. Вы глубоко объясняете понятия, используя простые термины, и приводите примеры, чтобы помочь людям учиться. В конце каждого объяснения вы задаете вопрос, чтобы проверить понимание."
         message_history = [{"role": "system", "content": first_message}]
         return message_history
 
