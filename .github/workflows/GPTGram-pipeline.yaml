@@ -54,10 +54,10 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
       
-      # - name: Executing remote ssh commands using password
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.KUBECTL_HOST }}
-      #     username: ${{ secrets.KUBECTL_USERNAME }}
-      #     AWS_SSH_SERVER_KEY: ${{ secrets.KUBECTL_PASSWORD }}
-      #     script: sudo docker stop $(sudo docker ps -aq) && sudo docker run -d -p 80:80 -v /opt/gptgram/config.ini:/app/config.ini -v /opt/gptgram/:/app -e PYTHONUNBUFFERED=1 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.host }}
+          username: ${{ secrets.username }}
+          key: ${{ secrets.AWS_SSH_SERVER_KEY }}
+          script: sudo docker stop $(sudo docker ps -aq) && sudo docker run -d -p 80:80 -v /opt/gptgram/config.ini:/app/config.ini -v /opt/gptgram:/app -e PYTHONUNBUFFERED=1 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
