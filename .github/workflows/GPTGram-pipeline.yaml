@@ -56,6 +56,9 @@ jobs:
       
       - name: Executing remote ssh commands using password
         uses: appleboy/ssh-action@master
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         with:
           host: ${{ secrets.AWS_SERVER_HOST_PROD }}
           username: ${{ secrets.AWS_SERVER_USER_PROD }}
