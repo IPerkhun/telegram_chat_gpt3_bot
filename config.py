@@ -2,7 +2,7 @@ import os
 from configparser import ConfigParser
 
 class ConfigManager:
-    def __init__(self, config_file_path='config.ini'):
+    def __init__(self, config_file_path='config-dev.ini'):
         self.config_file_path = config_file_path
         self.config = ConfigParser()
         self.config.read(self.config_file_path)

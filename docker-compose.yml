@@ -5,7 +5,7 @@ services:
     build:
       context: .
     volumes:
-      - ./config.ini:/app/config.ini
+      - ./config-dev.ini:/app/config-dev.ini
       - ./:/app
     environment:
       - PYTHONUNBUFFERED=1
