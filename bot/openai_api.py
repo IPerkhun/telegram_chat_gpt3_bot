@@ -1,25 +1,23 @@
 import openai
-import os
-
-class OpenAIAPI:
-    def __init__(self, openai_api_key):
-        self.api_key = openai_api_key
-        openai.api_key = openai_api_key
-
-    def send_message(self, message, message_history=[]):     
-        
-
-        prompt = message
+from config import ConfigManager
 
 
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=2048,
+class OpenAIManager:
+    def __init__(self, openai_api_key=None):
+        self.model_name = "gpt-3.5-turbo"
+        if not openai_api_key:
+            openai_api_key = ConfigManager().get_openai_api_key()
+        self.openai_api_key = openai_api_key
+
+    async def get_openai_response(self, messages):
+        response = openai.ChatCompletion.create(
+            api_key=self.openai_api_key,
+            model=self.model_name,
+            messages=messages,
+            max_tokens=1024,
             n=1,
             stop=None,
-            temperature=0.5,
-            timeout=1200,
+            temperature=0.9,
         )
-        return response.choices[0].text
-        
+        text = response.choices[0]["message"]["content"]
+        return text

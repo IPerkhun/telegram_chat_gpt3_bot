@@ -1,3 +1,8 @@
 python-telegram-bot
 openai
 python-dotenv
+playwright-stealth
+playwright
+sqlalchemy
+aiogram 
+tiktoken
