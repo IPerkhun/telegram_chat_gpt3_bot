@@ -23,6 +23,7 @@ class MyChatBot:
         # Register message handlers
         self.dp.register_message_handler(self.send_welcome, commands=['start'])
         self.dp.register_message_handler(self.send_help, commands=['help'])
+        self.dp.register_message_handler(self.new_conversation, commands=['new'])
         self.dp.register_message_handler(self.echo)
 
 
@@ -30,6 +31,7 @@ class MyChatBot:
         commands = [
             types.BotCommand(command="/start", description="Start the bot"),
             types.BotCommand(command="/help", description="Get help"),
+            types.BotCommand(command="/new", description="Start a new conversation"),
         ]
         await dispatcher.bot.set_my_commands(commands)
 

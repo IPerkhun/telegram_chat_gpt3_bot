@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  my_chat_bot:
+    build:
+      context: .
+    volumes:
+      - ./config.ini:/app/config.ini
+      - ./:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
