@@ -55,12 +55,9 @@ jobs:
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
       
       - name: Executing remote ssh commands using password
-        uses: appleboy/ssh-action@master
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
         with:
           host: ${{ secrets.AWS_SERVER_HOST_PROD }}
           username: ${{ secrets.AWS_SERVER_USER_PROD }}
           key: ${{ secrets.AWS_SSH_SERVER_KEY }}
-          script: sudo docker stop $(sudo docker ps -aq) && sudo docker rm $(sudo docker ps -aq) && sudo docker run -d -p 80:80 -v /opt/gptgram/config.ini:/app/config.ini -e PYTHONUNBUFFERED=1 $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          script: sudo docker stop $(sudo docker ps -aq) && sudo docker rm $(sudo docker ps -aq) && sudo docker run -d -p 80:80 -v /opt/gptgram/config.ini:/app/config.ini -e PYTHONUNBUFFERED=1 ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          
